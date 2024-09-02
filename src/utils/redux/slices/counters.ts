@@ -14,6 +14,25 @@ const initialState: IInitialState = {
   accessGranted: 0,
 };
 
+const includesUser = (
+  state: IInitialState,
+  previosAttempt: IReduxCharacterDTO,
+  payload: {user: ICharacter; access: boolean},
+) =>
+  (state.users = state.users.map(user =>
+    user.id === previosAttempt.id
+      ? {...user, attempts: user.attempts + 1, access: payload.access}
+      : user,
+  ));
+
+const newUser = (
+  state: IInitialState,
+  payload: {user: ICharacter; access: boolean},
+) => {
+  const user = userDTO(payload.user);
+  state.users.push({...user, attempts: 1, access: payload.access});
+};
+
 const attemptsSlice = createSlice({
   name: 'attempts',
   initialState,
@@ -32,16 +51,12 @@ const attemptsSlice = createSlice({
       }
 
       if (previosAttempt) {
-        state.users = state.users.map(user =>
-          user.id === previosAttempt.id
-            ? {...user, attempts: user.attempts + 1, access: payload.access}
-            : user,
-        );
+        includesUser(state, previosAttempt, payload);
       } else {
-        const user = userDTO(payload.user);
-        state.users.push({...user, attempts: 1, access: payload.access});
+        newUser(state, payload);
       }
     },
+    reset: state => initialState,
   },
 });
 
